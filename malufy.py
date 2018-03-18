@@ -89,11 +89,11 @@ def separa_arquivos(lista,max_registros=10000,max_carac=10000000):
         * lista com as sublistas
     """
     if type(lista) != list:
-        raise ValueError("{}: lista deve ser do tipo list".format('quebra_arquivos'))
+        raise ValueError("{}: lista deve ser do tipo list".format('separa_arquivos'))
     if len(lista) == 0:
-        raise ValueError("{}: a lista de lista passada nao tem itens".format('quebra_arquivos'))
+        raise ValueError("{}: a lista de lista passada nao tem itens".format('separa_arquivos'))
     if type(lista[0]) == list:
-        raise ValueError("{}: Nao passe uma lista de listas!".format('quebra_arquivos'))
+        raise ValueError("{}: Nao passe uma lista de listas!".format('separa_arquivos'))
     
     sublistas_finais = []
     sublistas_registros =  quebra_num_de_registros(lista,max_registros=max_registros)

@@ -23,6 +23,7 @@ def main():
     Salesforce.to_salesforce = to_salesforce
     Salesforce.list_of_dict_to_saleforce = list_of_dict_to_saleforce
     Salesforce.query_salesforce = query_salesforce
+    Salesforce.simple_describe = simple_describe
 
 # funcoes de gerenciamento de arquivos, respeitando os limites do Salesforce
 def num_caracteres(lista):
@@ -410,10 +411,31 @@ def to_salesforce(self,lista,method,obj,path,depara=None,drop=False,step=5000,su
 
     return resultados
 
-# falta fazer
-# describe API
-# consulta org
+def simple_describe(self,path,filename,nomes_objetos=None):
+    if path[-1] != '/':
+        raise ValueError("{}: O path passado nao direciona para uma pasta. Coloque '/' no final!".format('simple_describe'))
+    
+    quero = {'createable','custom','calculated','label','name','permissionable','queryable','retrieveable','searchable','triggerable','updateable','autoNumber','defaultedOnCreate'}
+    simple_describe_objetos = pd.DataFrame()
 
+    describe_sf = self.describe()
+    objects = adjust_report(describe_sf['sobjects'])
+    print("Max Batch Size: {}".format(describe_sf['maxBatchSize']))
+    print("Encoding: {}".format(describe_sf['encoding']))
+
+    if nomes_objetos == None:
+        nomes_objetos = list(set(objects.name))
+
+    for obj in nomes_objetos:
+        describe_obj = eval("self.{}.describe()".format(obj))
+        describe_campos_completo = pd.DataFrame(describe_obj['fields'])
+        describe_campos_reduzido = describe_campos_completo[list(quero & set(describe_campos_completo.columns))].copy()
+        describe_campos_reduzido['object'] = obj
+        simple_describe_objetos = pd.concat([describe_campos_reduzido,simple_describe_objetos],axis=0)
+    simple_describe_objetos.to_excel("{}{}.xlsx".format(path,filename),index=False)
+
+# falta fazer
+# consulta org
 
 if __name__ == "__main__":
     main()

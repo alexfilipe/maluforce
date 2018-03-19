@@ -3,6 +3,7 @@ import numpy as np
 import os
 import re
 import timeit
+import copy
 from simple_salesforce import Salesforce
 from simple_salesforce.exceptions import (
     SalesforceError,
@@ -23,7 +24,7 @@ def main():
     Salesforce.list_of_dict_to_saleforce = list_of_dict_to_saleforce
     Salesforce.query_salesforce = query_salesforce
 
-# funcoes para quebra de listas respeitando os limites de bulk do Salesforce
+# funcoes de gerenciamento de arquivos, respeitando os limites do Salesforce
 def num_caracteres(lista):
     """
         Retorna o numero de caracteres de uma lista.
@@ -89,11 +90,11 @@ def separa_arquivos(lista,max_registros=10000,max_carac=10000000):
         * lista com as sublistas
     """
     if type(lista) != list:
-        raise ValueError("{}: lista deve ser do tipo list".format('separa_arquivos'))
+        raise ValueError("{}: lista deve ser do tipo list".format('quebra_arquivos'))
     if len(lista) == 0:
-        raise ValueError("{}: a lista de lista passada nao tem itens".format('separa_arquivos'))
+        raise ValueError("{}: a lista de lista passada nao tem itens".format('quebra_arquivos'))
     if type(lista[0]) == list:
-        raise ValueError("{}: Nao passe uma lista de listas!".format('separa_arquivos'))
+        raise ValueError("{}: Nao passe uma lista de listas!".format('quebra_arquivos'))
     
     sublistas_finais = []
     sublistas_registros =  quebra_num_de_registros(lista,max_registros=max_registros)
@@ -209,7 +210,7 @@ def adjust_report(report):
         Ajusta a resposta retornada pelo sf (lista de dicionario) em um dataframe
     """
     s = []
-    a = report
+    a = copy.deepcopy(report)
     for i in a:
         if 'errors' in i.keys():
             if not i['errors']:
@@ -225,7 +226,7 @@ def adjust_report(report):
     dataframe = dataframe.applymap(lambda x: x.encode('unicode_escape').decode('utf-8') if isinstance(x, str) else x)
     return dataframe
 
-def renomeia_list_of_dict(lista,depara,drop = False):
+def renomeia_list_of_dict(lista,depara=None,drop = False):
     """
         [input]
         * lista - lista de dicionarios
@@ -245,7 +246,7 @@ def to_unicode(self):
     out = self.applymap(lambda x: x.encode('unicode_escape').decode('utf-8') if isinstance(x, str) else x)
     return out
 
-def to_list_of_dict(self,depara,drop = False):
+def to_list_of_dict(self,depara=None,drop = False):
     """
         [input]
         * depara - dicionario com nome das novas colunas
@@ -253,21 +254,25 @@ def to_list_of_dict(self,depara,drop = False):
         [output]
         * lista de dicionario
     """
-    assert type(depara) == dict, "Formato inválido"
-    depara_nao_nas_colunas = set(depara.keys()) - set(self.columns)
-    colunas_nao_no_depara = set(self.columns) - set(depara.keys())
-    if len(depara_nao_nas_colunas) != 0:
-        raise ValueError("As seguintes chaves do depara nao estao no DataFrame: {}".format(depara_nao_nas_colunas))
-    if (len(colunas_nao_no_depara) > 0 ):
-        if drop:
-            print("As seguintes colunas serao dropadas: {}".format(colunas_nao_no_depara))
-        else:
-            raise ValueError("As seguintes colunas nao estao no depara: {}".format(colunas_nao_no_depara))
+    if depara == None:
+        print("{}: depara esta vazio, nenhuma coluna foi renomeada!".format('to_list_of_dict'))
+        out = self.to_dict(orient='records')
+    else:
+        assert type(depara) == dict, "Formato inválido"
+        depara_nao_nas_colunas = set(depara.keys()) - set(self.columns)
+        colunas_nao_no_depara = set(self.columns) - set(depara.keys())
+        if len(depara_nao_nas_colunas) != 0:
+            raise ValueError("As seguintes chaves do depara nao estao no DataFrame: {}".format(depara_nao_nas_colunas))
+        if (len(colunas_nao_no_depara) > 0 ):
+            if drop:
+                print("As seguintes colunas serao dropadas: {}".format(colunas_nao_no_depara))
+            else:
+                raise ValueError("As seguintes colunas nao estao no depara: {}".format(colunas_nao_no_depara))
 
-    df_new_columns = self.rename(index=str, columns=depara,copy = True)
-    if drop:
-        df_new_columns.drop(columns =  list(set(df_new_columns.columns) - set(depara.values())), inplace = True)
-    out = df_new_columns.to_dict(orient='records')
+        df_new_columns = self.rename(index=str, columns=depara,copy = True)
+        if drop:
+            df_new_columns.drop(columns =  list(set(df_new_columns.columns) - set(depara.values())), inplace = True)
+        out = df_new_columns.to_dict(orient='records')
     return out
 
 # metodos para a classe simple_salesforce.Salesforce
@@ -341,7 +346,7 @@ def query_salesforce(self,obj,query,api='bulk'):
                 out.append({x : i[x] for x in c})
     return out
 
-def to_salesforce(self,lista,method,obj,depara,path,drop=False,step=5000,sufixo='',prefixo='',start_index=0):
+def to_salesforce(self,lista,method,obj,path,depara=None,drop=False,step=5000,sufixo='',prefixo='',start_index=0):
     """
         Envia uma lista de list_of_dict para o Salesforce, e salva o resultado em arquivos.
         [input]
@@ -363,8 +368,6 @@ def to_salesforce(self,lista,method,obj,depara,path,drop=False,step=5000,sufixo=
     if path[-1] != '/':
         raise ValueError("{}: O path passado nao direciona para uma pasta. Coloque '/' no final!".format('to_salesforce'))
 
-
-    ### VER PQ DUPLICOU COLUNA!!! Fazer o caminho de salvar em pickle novamente
     arquivos = []
     resultados = []
     resultados_df = []
@@ -372,12 +375,9 @@ def to_salesforce(self,lista,method,obj,depara,path,drop=False,step=5000,sufixo=
         lod = renomeia_list_of_dict(item,depara,drop=drop)
         arquivos.extend(lod)
 
-    df_merged_report = pd.DataFrame()
-
     count = start_index
     for arquivo in arquivos:
         if len(arquivo) > 0:
-            df = pd.DataFrame(arquivo)
             filename = """{}_{}_report_{}_{}""".format(prefixo,method,obj,sufixo)
             
             start_time = timeit.default_timer()
@@ -387,33 +387,33 @@ def to_salesforce(self,lista,method,obj,depara,path,drop=False,step=5000,sufixo=
             df_report = adjust_report(report)
             df_report["taskid"] = df_report["id"]
             df_report.drop(columns=["id"],inplace = True)
-            df_merged_report = pd.concat([df,df_report],axis=1)
 
-            tmp = df_merged_report.to_dict(orient='records')
+            tmp = df_report.to_dict(orient='records')
             salva_arquivos([tmp],path,filename,start_index=count)
             resultados.extend([tmp])
-            resultados_df.extend([df_merged_report])
+            resultados_df.extend([df_report])
 
-            count += 1
-
-            err = df_merged_report[~df_merged_report.success].shape[0]
-            suc = df_merged_report[df_merged_report.success].shape[0]
+            err = df_report[~df_report.success].shape[0]
+            suc = df_report[df_report.success].shape[0]
 
             print("\terros:",err)
             print("\tsucessos:",suc)
             if err > 0:
                 try:
-                    df_merged_report.to_excel("{}{}_{}.xlsx".format(path,filename,count))
+                    df_report.to_excel("{}{}_{}.xlsx".format(path,filename,count))
                 except:
                     pass
-                print('\tmensagem: ', set(df_merged_report.message))
+                print('\tmensagem: ', set(df_report.message))
             m, s = divmod(timeit.default_timer() - start_time, 60)
             print("\ttempo decorrido: {:1.0f}min {:2.0f}s".format(m,s))
+            count += 1
 
     return resultados
 
+# falta fazer
+# describe API
+# consulta org
+
+
 if __name__ == "__main__":
     main()
-
-
-

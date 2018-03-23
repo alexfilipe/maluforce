@@ -434,6 +434,8 @@ def simple_describe(self,path,filename,nomes_objetos=None):
         simple_describe_objetos = pd.concat([describe_campos_reduzido,simple_describe_objetos],axis=0)
     simple_describe_objetos.to_excel("{}{}.xlsx".format(path,filename),index=False)
 
+def select_all_from(self,obj,query,api='bulk'):
+    
 # falta fazer
 # consulta org
 

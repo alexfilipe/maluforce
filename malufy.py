@@ -83,12 +83,13 @@ def quebra_num_de_registros(lista,max_registros=10000):
 
 def separa_arquivos(lista,max_registros=10000,max_carac=10000000):
     """
+    Separa uma lista de dicionarios em sublistas respeitando os limites passados.
         [input]
         * lista - lista de registros a ser dividida em sublistas
         * max_registros - numero maximo de linhas por sublista
         * max_carac - numero maximo de caracteres por sublista
         [output]
-        * lista com as sublistas
+        * lista com as sublistas 
     """
     if type(lista) != list:
         raise ValueError("{}: lista deve ser do tipo list".format('quebra_arquivos'))
@@ -412,6 +413,13 @@ def to_salesforce(self,lista,method,obj,path,depara=None,drop=False,step=5000,su
     return resultados
 
 def simple_describe(self,path,filename,nomes_objetos=None):
+    """
+        [input]
+        * path - caminho para salvar o arquivo
+        * filename - nome do arquivo a ser salvo
+        * nomes_objetos - lista com o nome dos objetos> None para consultar todos
+        [output]
+    """
     if path[-1] != '/':
         raise ValueError("{}: O path passado nao direciona para uma pasta. Coloque '/' no final!".format('simple_describe'))
     
@@ -433,8 +441,10 @@ def simple_describe(self,path,filename,nomes_objetos=None):
         describe_campos_reduzido['object'] = obj
         simple_describe_objetos = pd.concat([describe_campos_reduzido,simple_describe_objetos],axis=0)
     simple_describe_objetos.to_excel("{}{}.xlsx".format(path,filename),index=False)
+    lod_simple_describe_objetos = simple_describe_objetos.to_dict(orient='records')
+    return lod_simple_describe_objetos
 
-def select_all_from(self,obj,query,api='bulk'):
+# def select_all_from(self,obj,query,api='bulk'):
     
 # falta fazer
 # consulta org

@@ -423,7 +423,7 @@ def simple_describe(self,path,filename,nomes_objetos=None):
     if path[-1] != '/':
         raise ValueError("{}: O path passado nao direciona para uma pasta. Coloque '/' no final!".format('simple_describe'))
     
-    quero = {'createable','custom','calculated','label','name','permissionable','queryable','retrieveable','searchable','triggerable','updateable','autoNumber','defaultedOnCreate'}
+    quero = {'createable','custom','calculated','label','name','permissionable','queryable','retrieveable','searchable','triggerable','updateable','autoNumber','defaultedOnCreate','nillable','referenceTo','type'}
     simple_describe_objetos = pd.DataFrame()
 
     describe_sf = self.describe()
@@ -443,6 +443,8 @@ def simple_describe(self,path,filename,nomes_objetos=None):
     simple_describe_objetos.to_excel("{}{}.xlsx".format(path,filename),index=False)
     lod_simple_describe_objetos = simple_describe_objetos.to_dict(orient='records')
     return lod_simple_describe_objetos
+
+# fazer funcionar com timestamp
 
 # def select_all_from(self,obj,query,api='bulk'):
     

@@ -304,6 +304,25 @@ def list_of_dict_to_saleforce(self,obj,method,data,step=5000):
         completeReport.append({**outlist[i],**data[i]})
     return completeReport
 
+def decodeSFresponse(resp):
+    out = []
+    for root in resp:
+        contents = {}
+        for k in list(set(root.keys()) - {'attributes'}):
+            nome = k
+            content = root[k]
+            while type(content) is dict:
+                chave = list(set(content.keys()) - {'attributes'}) # sempre tem 'attribute' e o que eu quero
+    #             print('chave:', chave[0], chave)
+    #             print('conteudo:', content[chave[0]])
+                content = content[chave[0]]
+                nome += '.' + chave[0]
+            contents[nome] = content
+    #         print('contents:',contents
+    #     print('contents:',contents)
+        out.append(contents)
+    return out
+
 def query_salesforce(self,obj,query,api='bulk'):
     """
         [input]
@@ -327,10 +346,7 @@ def query_salesforce(self,obj,query,api='bulk'):
             print('Tentando com rest')
             api = 'rest'
         if len(resp) > 0:
-            c = list(resp[0].keys())
-            c.remove('attributes')
-            for i in resp:
-                out.append({x : i[x] for x in c})
+            out = decodeSFresponse(resp)
     if api == 'rest':
         try:
             resp = self.query_all(query)
@@ -342,10 +358,7 @@ def query_salesforce(self,obj,query,api='bulk'):
             except (IndexError,SalesforceMalformedRequest) as e:
                 print("{}: {} request invalida: {}".format('query_salesforce',api,e))
         if len(resp) > 0:
-            c = list(resp['records'][0].keys())
-            c.remove('attributes')
-            for i in resp['records']:
-                out.append({x : i[x] for x in c})
+            out = decodeSFresponse(resp)
     return out
 
 def to_salesforce(self,lista,method,obj,path,depara=None,drop=False,step=5000,sufixo='',prefixo='',start_index=0):

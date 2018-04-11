@@ -316,7 +316,7 @@ def decodeSFresponse(resp):
     #             print('chave:', chave[0], chave)
     #             print('conteudo:', content[chave[0]])
                 content = content[chave[0]]
-                nome += '.' + chave[0]
+                nome += chave[0]
             contents[nome] = content
     #         print('contents:',contents
     #     print('contents:',contents)

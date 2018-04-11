@@ -25,7 +25,6 @@ import pandas as pd
 df = pd.DataFrame()
 
 df.to_list_of_dict()
-
 ```
 
 # simple-salesforce custom methods

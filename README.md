@@ -1,8 +1,11 @@
 ## run
+```
 %run -i malufy.py
-
+```
 ## login
+```
 sf = Salesforce(username='', password='', security_token='', sandbox=False)
+```
 
 # Introduction
 This module's main data structres are pandas.DataFrame and "list of dict" ie "lod": [{'a':1},{'a':2}]. lod is the accepted format by salesforce. 

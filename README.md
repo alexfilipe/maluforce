@@ -46,7 +46,7 @@ lod_res = sf.list_of_dict_to_saleforce('account','insert',lod_req)
 ```
 And this to format salesforce's lod responses into dataframes:
 ```
- df = adjust_report(lod_res)
+df = adjust_report(lod_res)
 ```
 
 # Utils

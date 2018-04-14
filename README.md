@@ -19,8 +19,8 @@ Breaks your lod into smaller lods respecting salesforce´s bulk-api limittations
 separa_arquivos()
 salva_arquivos()
 carrega_arquivos()
-
 ``` 
+
 # Pandas.DataFrame custom methods
 
 ```

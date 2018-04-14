@@ -33,7 +33,6 @@ df.to_list_of_dict()
 
 ```
 lod = sf.query_salesforce('account',"select id, recordtype.name, owner.email from account where recordtype.name = 'Default'")
-
 ```
 Use this for easy file management:
 ```

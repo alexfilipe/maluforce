@@ -32,5 +32,5 @@ def path_formatter(path):
         if path[-1] != "/":
             raise ValueError("The given path does not point to a folder. Be sure to append '/' at its end.")
     else:
-        path = os.getcwd()
+        path = os.getcwd() + "/"
     return path

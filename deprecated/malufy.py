@@ -24,6 +24,7 @@ def main():
     Salesforce.query_salesforce = query_salesforce
     Salesforce.simple_describe = simple_describe
 
+
 # funcoes de gerenciamento de arquivos, respeitando os limites do Salesforce
 def num_caracteres(lista):
     """

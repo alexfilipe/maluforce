@@ -9,37 +9,31 @@ from simple_salesforce.exceptions import (SalesforceMalformedRequest)
 
 from maluforce.utils.validators import (path_formatter)
 from maluforce.utils.reportutils import (adjust_report, lod_rename, to_lod, decodeSFObject, decodeSFresponse)
-from maluforce.utils.fileutils import (num_char, split_lod, split_lod_by_char, split_lod_by_item, save_lod_files, read_lod_file, read_lod_files)
+from maluforce.utils.fileutils import ( 
+    num_char, split_lod, split_lod_by_char, split_lod_by_item, save_lod_files, read_lod_file, read_lod_files,SF_BULK_MAX_CHAR,SF_BULK_MAX_ITEM
+)
 
 
 class Maluforce(Salesforce):
     
-    # metodos para a classe simple_salesforce.Salesforce
     def lod_to_saleforce(self, obj, method, data, step=5000):
         """
             [input]
-            * obj -- objeto do salesforce
-            * method - ['insert', 'delete','upsert','update','undelete']
-            * data -- lista de dicionario com os dados
-            * step -- tamanho dos batchs
+            * obj - str, Salesforce sObject
+            * method - str, ('insert'|'delete'|'upsert'|'update'|'undelete')
+            * data - lod
+            * step - 
             [output]
-            * lista de diconarios
+            * lod
         """
-
         assert method in [
             "insert", "delete", "upsert", "update", "undelete"
-        ], """{} : Operacao de query invalida""".format(
-            "to_saleforce"
-        )
+        ], """invalid method"""
         assert (
             (type(data) is list) and (True if len(data) == 0 else type(data[0]) is dict)
-        ), """{} : Dado nao suportado""".format(
-            "to_saleforce"
-        )
+        ), """wrong data format"""
         assert type(step) in [type(None), int]
-
         step = min(10000, step)
-
         completeReport = []
         outlist = []
         for i in range(0, len(data), step):
@@ -53,26 +47,25 @@ class Maluforce(Salesforce):
     def query_salesforce(self, obj, query, api="bulk"):
         """
             [input]
-            * obj - nome do objeto do salesforce
+            * obj - (str), sObject name
             * query - query
             * api - ['bulk','rest']
             [output]
-            * lista de dicionario
+            * lod
         """
-        assert type(obj) is str, "{} : obj deve ser tipo str".format("query_salesforce")
-        assert type(query) is str, "{} : query deve ser tipo str".format("query_salesforce")
-        assert api in ["bulk", "rest"], "{} : api deve ser bulk ou rest".format(
+        assert type(obj) is str, "{} : obj must be a str".format("query_salesforce")
+        assert type(query) is str, "{} : query must be a str".format("query_salesforce")
+        assert api in ["bulk", "rest"], "{} : api options are: bulk, rest".format(
             "query_salesforce"
         )
-
         out = []
         resp = []
         if api == "bulk":
             try:
                 resp = eval("self.bulk." + obj).query(query)
             except (IndexError, SalesforceMalformedRequest) as e:
-                print("{}: {} request invalida: {}".format("query_salesforce", api, e))
-                print("Tentando com rest")
+                print("{}: {} invalid request: {}".format("query_salesforce", api, e))
+                print("Trying with rest api...")
                 api = "rest"
             if len(resp) > 0:
                 out = decodeSFresponse(resp)
@@ -80,14 +73,14 @@ class Maluforce(Salesforce):
             try:
                 resp = self.query_all(query)
             except (IndexError, SalesforceMalformedRequest) as e:
-                print("{}: {} request invalida: {}".format("query_salesforce", api, e))
+                print("{}: {} invalid request: {}".format("query_salesforce", api, e))
                 print(
-                    "Tentando sem query_all(), a resposta pode conter no maximo 2000 registros!"
+                    "Trying limiting the response to 2000 registers..."
                 )
                 try:
                     resp = self.query(query)
                 except (IndexError, SalesforceMalformedRequest) as e:
-                    print("{}: {} request invalida: {}".format("query_salesforce", api, e))
+                    print("{}: {} invalid request: {}".format("query_salesforce", api, e))
             if len(resp) > 0:
                 out = decodeSFresponse(resp)
         return out
@@ -95,87 +88,74 @@ class Maluforce(Salesforce):
 
     def to_salesforce(
         self,
-        lista,
+        lod_list,
         method,
         obj,
-        path,
-        depara=None,
+        path=None,
+        key_map=None,
         drop=False,
         step=5000,
-        sufixo="",
-        prefixo="",
+        suf="",
+        pref="",
         start_index=0,
     ):
         """
-            Envia uma lista de list_of_dict para o Salesforce, e salva o resultado em arquivos.
+            Sends all lods parsed to Salesforce. They must be of the same sObject and respect Salesforce's bulk api limits.
             [input]
-            * lista - lista com lista de dicionarios a serem enviadas
-            * method - ['insert', 'delete','upsert','update','undelete']
-            * obj - objeto do salesforce
-            * depara - dicionario pare renomear as colunas a serem enviadas
-            * path - caminho da pasta para salvar os arquivos
-            * drop - True para retornar apenas as colunas do depara, False para retornar todas
-            * step - tamanho dos batchs
-            * sufixo - a ser adicinado ao nome do arquivo
-            * prefixo - a ser adicinado ao nome do arquivo
-            * start_index - a ser adicinado ao nome do arquivo
+            * lod_list - (list) of lods to be sent
+            * method - ('insert'|'delete'|'upsert'|'update'|'undelete')
+            * obj - (str), sObject
+            * key_map - (dict), used to rename current keys to Salesforce's field api names.
+            * path - (str), path to save report files
+            * drop - (bool), True to drop keys that are not in key_map
+            * step - (int), batch size
+            * suf - (str), added to the end of the file name
+            * pref - (str), added to the start of the file name
+            * start_index - (int), index of the first file to be saved.
             [output]
-            * lista com lista de dicionarios que foram enviados + report
-            * lista com dataframes que foram enviados + report
+            * (list), list of lods report
         """
-
-        if path[-1] != "/":
-            raise ValueError(
-                "{}: O path passado nao direciona para uma pasta. Coloque '/' no final!".format(
-                    "to_salesforce"
-                )
-            )
-
-        arquivos = []
-        resultados = []
-        resultados_df = []
-        for item in lista:
-            lod = lod_rename(item, depara, drop=drop)
-            arquivos.extend(lod)
-
+        path = path_formatter(path)
+        files = []
+        lod_report_final = []
+        for lod in lod_list:
+            files.extend(lod_rename(lod, key_map, drop=drop))
         count = start_index
-        for arquivo in arquivos:
-            if len(arquivo) > 0:
-                filename = """{}_{}_report_{}_{}""".format(prefixo, method, obj, sufixo)
-
+        for lod in files:
+            if len(lod) > 0:
+                filename = """{}_{}_report_{}_{}""".format(pref, method, obj, suf)
                 start_time = timeit.default_timer()
                 print(
-                    "{} #{} de {} {} iniciado - {}:".format(
-                        method, count, len(arquivo), obj, filename
+                    "{} #{} of {} {} started at {}, saved on {}:".format(
+                        method, count, len(lod), obj, timeit.time.strftime("%H:%M:%S", timeit.time.localtime()), filename
                     )
                 )
-                report = self.list_of_dict_to_saleforce(obj, method, arquivo, step)
-
+                # sends to salesforce
+                report = self.lod_to_saleforce(obj, method, lod, step)
+                # format response
                 df_report = adjust_report(report)
-                df_report["taskid"] = df_report["id"]
+                df_report = df_report.assign(taskid=df_report["id"])
                 df_report.drop(columns=["id"], inplace=True)
-
-                tmp = df_report.to_dict(orient="records")
-                save_lod_files([tmp], path, filename, start_index=count)
-                resultados.extend([tmp])
-                resultados_df.extend([df_report])
-
+                # reports
+                lod_report = df_report.to_dict(orient="records")
+                save_lod_files([lod_report], path, filename, start_index=count)
+                lod_report_final.append(lod_report)
                 err = df_report[~df_report.success].shape[0]
                 suc = df_report[df_report.success].shape[0]
-
-                print("\terros:", err)
-                print("\tsucessos:", suc)
+                print("\terrors:", err)
+                print("\tsuccess:", suc)
                 if err > 0:
                     try:
                         df_report.to_excel("{}{}_{}.xlsx".format(path, filename, count))
                     except:
                         pass
-                    print("\tmensagem: ", set(df_report.message))
+                    print("\tmessages: ", set(df_report.message))
                 m, s = divmod(timeit.default_timer() - start_time, 60)
-                print("\ttempo decorrido: {:1.0f}min {:2.0f}s".format(m, s))
+                print("\texecution time: {:1.0f}min {:2.0f}s".format(m, s))
                 count += 1
-        return resultados
-
+            else:
+                print("One of the lods passed had length zero. Skipped...")
+        return lod_report_final
 
     def simple_describe(self, path, filename, nomes_objetos=None):
         """

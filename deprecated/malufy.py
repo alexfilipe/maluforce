@@ -16,7 +16,6 @@ from simple_salesforce.exceptions import (
     SalesforceAuthenticationFailed
 )
 
-
 def main():
     pd.DataFrame.to_unicode = to_unicode
     pd.DataFrame.to_list_of_dict = to_list_of_dict
@@ -24,6 +23,7 @@ def main():
     Salesforce.list_of_dict_to_saleforce = list_of_dict_to_saleforce
     Salesforce.query_salesforce = query_salesforce
     Salesforce.simple_describe = simple_describe
+
 
 # funcoes de gerenciamento de arquivos, respeitando os limites do Salesforce
 def num_caracteres(lista):
@@ -44,13 +44,13 @@ def quebra_list_num_caracteres(lista, maximo=9000000):
         [output]
         * lista com as sublistas
     """
-    maximo = min(maximo,10000000)
-
+    maximo = min(maximo , 10000000)
     num_carac_por_registro = []
     for registro in lista:
         num_carac_por_registro.extend([num_caracteres([registro])])
-    num_carac_cumulativo = list(np.cumsum(num_carac_por_registro))
-
+    num_carac_cumulativo = list(
+        np.cumsum(num_carac_por_registro)
+    )
     x = num_carac_cumulativo.copy()
     quebra = []
     ultimo = 0
@@ -104,7 +104,7 @@ def separa_arquivos(lista,max_registros=10000,max_carac=10000000):
     for sublista in sublistas_registros:
         sublistas_finais.extend(quebra_list_num_caracteres(sublista,maximo=max_carac))
     return sublistas_finais
-
+    
 def salva_arquivos(arquivos,path,filename,start_index=0):
     """
         Salva as listas de dicionario em arquivos .txt
@@ -119,9 +119,8 @@ def salva_arquivos(arquivos,path,filename,start_index=0):
         raise ValueError("{}: O path passado nao direciona para uma pasta. Coloque '/' no final!".format('salva_arquivos'))
 
     for i in range(0,len(arquivos)):
-        f = open("{}{}_{}.txt".format(path,filename,i+start_index),"w")
-        f.write(str(arquivos[i]))
-        f.close()
+        with open("{}{}_{}.txt".format(path, filename, i + start_index), "w") as f:
+            f.write(str(arquivos[i]))
 
 def carrega_arquivo(filename):
     x = open(filename,'r')
@@ -421,7 +420,6 @@ def to_salesforce(self,lista,method,obj,path,depara=None,drop=False,step=5000,su
             m, s = divmod(timeit.default_timer() - start_time, 60)
             print("\ttempo decorrido: {:1.0f}min {:2.0f}s".format(m,s))
             count += 1
-
     return resultados
 
 def simple_describe(self,path,filename,nomes_objetos=None):

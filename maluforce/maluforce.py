@@ -5,18 +5,11 @@ import re
 import timeit
 import copy
 from simple_salesforce import Salesforce
-from simple_salesforce.exceptions import (
-    SalesforceError,
-    SalesforceMoreThanOneRecord,
-    SalesforceExpiredSession,
-    SalesforceRefusedRequest,
-    SalesforceResourceNotFound,
-    SalesforceGeneralError,
-    SalesforceMalformedRequest,
-    SalesforceAuthenticationFailed,
-)
+from simple_salesforce.exceptions import (SalesforceMalformedRequest)
 
-from maluforce.utils import *
+from maluforce.utils.validators import (path_formatter)
+from maluforce.utils.reportutils import (adjust_report, lod_rename, to_lod, decodeSFObject, decodeSFresponse)
+from maluforce.utils.fileutils import (num_char, split_lod, split_lod_by_char, split_lod_by_item, save_lod_files, read_lod_file, read_lod_files)
 
 
 class Maluforce(Salesforce):
@@ -142,7 +135,7 @@ class Maluforce(Salesforce):
         resultados = []
         resultados_df = []
         for item in lista:
-            lod = renomeia_list_of_dict(item, depara, drop=drop)
+            lod = lod_rename(item, depara, drop=drop)
             arquivos.extend(lod)
 
         count = start_index
@@ -163,7 +156,7 @@ class Maluforce(Salesforce):
                 df_report.drop(columns=["id"], inplace=True)
 
                 tmp = df_report.to_dict(orient="records")
-                salva_arquivos([tmp], path, filename, start_index=count)
+                save_lod_files([tmp], path, filename, start_index=count)
                 resultados.extend([tmp])
                 resultados_df.extend([df_report])
 
@@ -240,26 +233,6 @@ class Maluforce(Salesforce):
         simple_describe_objetos.to_excel("{}{}.xlsx".format(path, filename), index=False)
         lod_simple_describe_objetos = simple_describe_objetos.to_dict(orient="records")
         return lod_simple_describe_objetos
-
-def decodeSFresponse(resp):
-    out = []
-    for root in resp:
-        out.extend([decodeSFObject(root)])
-    return out
-
-
-def decodeSFObject(root):
-    dict_node = {}
-    for node in list(set(root.keys()) - {"attributes"}):
-        if type(root[node]) is dict:
-            tmp = {}
-            tmp = decodeSFObject(root[node])
-            for sub in tmp:
-                dict_node[node + sub] = tmp[sub]
-        else:
-            dict_node[node] = root[node]
-    return dict_node
-
 
 
 # fazer funcionar com timestamp

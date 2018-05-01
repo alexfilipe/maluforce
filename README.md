@@ -10,7 +10,7 @@ On parent directory:
 git clone git@github.com:stone-payments/maluforce
 pip install -e maluforce
 ```
-After successfull installation, delete the folder.
+After successfull installation, don't delete the folder.
 
 # Usage
 ```

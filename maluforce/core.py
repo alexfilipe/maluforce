@@ -7,9 +7,9 @@ import copy
 from simple_salesforce import Salesforce
 from simple_salesforce.exceptions import (SalesforceMalformedRequest)
 
-from maluforce.utils.validators import (path_formatter)
-from maluforce.utils.reportutils import (adjust_report, lod_rename, to_lod, decodeSFObject, decodeSFresponse)
-from maluforce.utils.fileutils import ( 
+from maluforce.validators import (path_formatter)
+from maluforce.reportutils import (adjust_report, lod_rename, to_lod, decodeSFObject, decodeSFresponse)
+from maluforce.fileutils import ( 
     num_char, split_lod, split_lod_by_char, split_lod_by_item, save_lod_files, read_lod_file, read_lod_files,SF_BULK_MAX_CHAR,SF_BULK_MAX_ITEM
 )
 

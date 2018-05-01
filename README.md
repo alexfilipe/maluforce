@@ -1,61 +1,29 @@
-## run
+# Description
+This module contains an extension of simple-salesforce Salesforce class (https://github.com/simple-salesforce/) and utility functions that help you manage files and reports in large scales.
+
+# Before Starting
+This module's main data structre is a "list of dict" e.g. "lod": [{'a':1},{'a':2}], which is the accepted format by salesforce. 
+
+# Setup
+After download, on parent directory:
 ```
-%run -i malufy.py
+pip install -e maluforce
 ```
-## login
+After successfull installation, delete the folder.
+
+# Usage
 ```
-sf = Salesforce(username='', password='', security_token='', sandbox=False)
+from maluforce import Maluforce
+sf = Maluforce(username='', password='', security_token='', sandbox=False)
+```
+Refeer to https://github.com/simple-salesforce/ for more instructions.
+
+# Report Utilities
+```
+from maluforce import adjust_report,lod_rename,to_lod
 ```
 
-# Introduction
-This module's main data structres are pandas.DataFrame and "list of dict" ie "lod": [{'a':1},{'a':2}]. lod is the accepted format by salesforce. 
-
-# File (Batch) Management
-Breaks your lod into smaller lods respecting salesforce´s bulk-api limittations, so that your batch is accepted. 
-
-## Main functions:
-
+# Files Utilities
 ```
-separa_arquivos()
-salva_arquivos()
-carrega_arquivos()
-``` 
-
-# Pandas.DataFrame custom methods
-
-```
-import pandas as pd
-df = pd.DataFrame()
-df.to_list_of_dict()
-```
-
-# simple-salesforce custom methods
-
-```
-lod = sf.query_salesforce('account',"select id, recordtype.name, owner.email from account where recordtype.name = 'Default'")
-```
-Use this for easy file management:
-```
-lod_res = sf.to_salesforce([lod_req_one,lod_req_two],'update','account','~/Documents/')
-``` 
-Use this to avoid writing files:
-```
-lod_res = sf.list_of_dict_to_saleforce('account','insert',lod_req)
-```
-And this to format salesforce's lod responses into dataframes:
-```
-df = adjust_report(lod_res)
-```
-
-# Utils
-
-Get a description of salesforce objects:
-```
-sf.simple_describe()
-```
-
-Data validation utils
-```
-validId()
-corrigeCNPJ()
+from maluforce import save_lod_files,read_lod_file,read_lod_files
 ```

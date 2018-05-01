@@ -2,7 +2,7 @@ import numpy as np
 import os
 import re
 
-from maluforce.utils.validators import (path_formatter)
+from maluforce.validators import (path_formatter)
 
 SF_BULK_MAX_CHAR = 10000000
 SF_BULK_MAX_ITEM = 10000

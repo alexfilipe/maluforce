@@ -94,3 +94,7 @@ def decodeSFObject(root):
         else:
             dict_node[node] = root[node]
     return dict_node
+
+def to_unicode(df):
+    out = df.applymap(lambda x: x.encode('unicode_escape').decode('utf-8') if isinstance(x, str) else x)
+    return out

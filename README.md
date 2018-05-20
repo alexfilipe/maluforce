@@ -5,10 +5,9 @@ This module contains an extension of simple-salesforce Salesforce class (https:/
 This module's main data structre is a "list of dict" e.g. "lod": [{'a':1},{'a':2}], which is the accepted format by salesforce. 
 
 # Setup
-On parent directory:
-```
-git clone git@github.com:stone-payments/maluforce
-pip install -e maluforce
+For edit mode installation, n parent directory:
+  git clone git@github.com:stone-payments/maluforce
+  pip install -e maluforce
 
 pip3 install git+https://github.com/stone-payments/maluforce.git#egg=maluforce&subdirectory=maluforce
 ```

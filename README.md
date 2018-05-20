@@ -14,8 +14,6 @@ For global installation:
 ```
 pip3 install git+https://github.com/stone-payments/maluforce.git#egg=maluforce&subdirectory=maluforce
 ```
-After successfull installation, don't delete the folder.
-
 # Usage
 ```
 from maluforce import Maluforce

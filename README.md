@@ -12,7 +12,7 @@ pip3 install -e maluforce
 ```
 For global installation:
 ```
-pip3 install git+https://github.com/stone-payments/maluforce.git#egg=maluforce&subdirectory=maluforce
+pip3 install git+https://github.com/stone-payments/maluforce.git
 ```
 # Usage
 ```

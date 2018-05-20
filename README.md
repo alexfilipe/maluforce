@@ -6,9 +6,12 @@ This module's main data structre is a "list of dict" e.g. "lod": [{'a':1},{'a':2
 
 # Setup
 For edit mode installation, n parent directory:
-  git clone git@github.com:stone-payments/maluforce
-  pip install -e maluforce
-
+```
+git clone git@github.com:stone-payments/maluforce
+pip3 install -e maluforce
+```
+For global installation:
+```
 pip3 install git+https://github.com/stone-payments/maluforce.git#egg=maluforce&subdirectory=maluforce
 ```
 After successfull installation, don't delete the folder.
@@ -20,6 +23,10 @@ sf = Maluforce(username='', password='', security_token='', sandbox=False)
 ```
 Refeer to https://github.com/simple-salesforce/ for more instructions.
 
+You can also run
+```
+from maluforce import *
+```
 # Report Utilities
 ```
 from maluforce import adjust_report,lod_rename,to_lod

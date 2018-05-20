@@ -58,7 +58,7 @@ class Maluforce(Salesforce):
         assert api in ["bulk", "rest"], "{} : api options are: bulk, rest".format(
             "query_salesforce"
         )
-        out = []
+        lod_resp = []
         resp = []
         if api == "bulk":
             try:
@@ -68,7 +68,7 @@ class Maluforce(Salesforce):
                 print("Trying with rest api...")
                 api = "rest"
             if len(resp) > 0:
-                out = decodeSFresponse(resp)
+                lod_resp = decodeSFresponse(resp)
         if api == "rest":
             try:
                 resp = self.query_all(query)
@@ -82,8 +82,8 @@ class Maluforce(Salesforce):
                 except (IndexError, SalesforceMalformedRequest) as e:
                     print("{}: {} invalid request: {}".format("query_salesforce", api, e))
             if len(resp) > 0:
-                out = decodeSFresponse(resp)
-        return out
+                lod_resp = decodeSFresponse(resp)
+        return lod_resp
 
 
     def to_salesforce(
@@ -157,22 +157,17 @@ class Maluforce(Salesforce):
                 print("One of the lods passed had length zero. Skipped...")
         return lod_report_final
 
-    def simple_describe(self, path, filename, nomes_objetos=None):
+    def simple_describe(self, s_objects=None,filename=None, path=None):
         """
             [input]
-            * path - caminho para salvar o arquivo
-            * filename - nome do arquivo a ser salvo
-            * nomes_objetos - lista com o nome dos objetos> None para consultar todos
+            * path - path to destination folder
+            * filename - no extension
+            * s_objects - (list) of sobjects names
             [output]
         """
-        if path[-1] != "/":
-            raise ValueError(
-                "{}: O path passado nao direciona para uma pasta. Coloque '/' no final!".format(
-                    "simple_describe"
-                )
-            )
+        path = path_formatter(path)
 
-        quero = {
+        properties = {
             "createable",
             "custom",
             "calculated",
@@ -190,29 +185,55 @@ class Maluforce(Salesforce):
             "referenceTo",
             "type",
         }
-        simple_describe_objetos = pd.DataFrame()
+        objects_describe = pd.DataFrame()
+        filename = None if filename is None else filename.split('.')[0]
 
-        describe_sf = self.describe()
-        objects = adjust_report(describe_sf["sobjects"])
-        print("Max Batch Size: {}".format(describe_sf["maxBatchSize"]))
-        print("Encoding: {}".format(describe_sf["encoding"]))
+        if s_objects == None:
+            describe_sf = self.describe()
+            objects = adjust_report(describe_sf["sobjects"])
+            # print("Max Batch Size: {}".format(describe_sf["maxBatchSize"]))
+            # print("Encoding: {}".format(describe_sf["encoding"]))
+            s_objects = list(set(objects.name))
 
-        if nomes_objetos == None:
-            nomes_objetos = list(set(objects.name))
-
-        for obj in nomes_objetos:
+        for obj in s_objects:
             describe_obj = eval("self.{}.describe()".format(obj))
-            describe_campos_completo = pd.DataFrame(describe_obj["fields"])
-            describe_campos_reduzido = describe_campos_completo[
-                list(quero & set(describe_campos_completo.columns))
+            df_full_object = pd.DataFrame(describe_obj["fields"])
+            df_short_object = df_full_object[
+                list(properties & set(df_full_object.columns))
             ].copy()
-            describe_campos_reduzido["object"] = obj
-            simple_describe_objetos = pd.concat(
-                [describe_campos_reduzido, simple_describe_objetos], axis=0
+            df_short_object["object"] = obj
+            objects_describe = pd.concat(
+                [df_short_object, objects_describe], axis=0
             )
-        simple_describe_objetos.to_excel("{}{}.xlsx".format(path, filename), index=False)
-        lod_simple_describe_objetos = simple_describe_objetos.to_dict(orient="records")
-        return lod_simple_describe_objetos
+        if filename is not None:
+            objects_describe.to_excel("{}{}.xlsx".format(path, filename), index=False)
+        lod_objects_describe = objects_describe.to_dict(orient="records")
+        return lod_objects_describe
+    
+    Salesforce.select_all_from()
+
+    def select_all_from(self, obj,params=None,api='bulk'):
+        """
+            [input]
+            * obj - (str) sobject name
+            * [params] - (str) filter criteria
+            * [api] - 'bulk' or 'rest'
+        """
+        lod_describe = []
+        fields = []
+        lod_resp = []
+        try:
+            lod_describe = self.simple_describe(s_objects=[obj])
+            fields = [f['label'] for f in lod_describe]
+        except Exception as e:
+            print("select_all_from:{}".format(e))
+        
+        if len(fields) > 0:
+            query_template = """SELECT {} FROM {} """
+            query_template = query_template if params is None else query_template + """ WHERE {}"""
+            query = query_template.format(",".join(fields),obj,params)
+            lod_resp = self.query_salesforce(obj=obj, query=query, api=api)
+        return lod_resp 
 
 
 # fazer funcionar com timestamp

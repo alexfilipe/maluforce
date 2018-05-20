@@ -210,9 +210,7 @@ class Maluforce(Salesforce):
         lod_objects_describe = objects_describe.to_dict(orient="records")
         return lod_objects_describe
     
-    Salesforce.select_all_from()
-
-    def select_all_from(self, obj,params=None,api='bulk'):
+    def select_all(self, obj,params=None,api='bulk'):
         """
             [input]
             * obj - (str) sobject name
@@ -224,7 +222,7 @@ class Maluforce(Salesforce):
         lod_resp = []
         try:
             lod_describe = self.simple_describe(s_objects=[obj])
-            fields = [f['label'] for f in lod_describe]
+            fields = [f['name'] for f in lod_describe]
         except Exception as e:
             print("select_all_from:{}".format(e))
         
@@ -234,11 +232,3 @@ class Maluforce(Salesforce):
             query = query_template.format(",".join(fields),obj,params)
             lod_resp = self.query_salesforce(obj=obj, query=query, api=api)
         return lod_resp 
-
-
-# fazer funcionar com timestamp
-
-# def select_all_from(self,obj,query,api='bulk'):
-
-# falta fazer
-# consulta org

@@ -13,8 +13,10 @@ pip3 install -e maluforce
 For global installation:
 ```
 pip3 install git+https://github.com/stone-payments/maluforce.git
-or 
-python3 -m pip install git+https://github.com/stone-payments/maluforce.git
+```
+For ubuntu: 
+```
+python3 -m pip install git+ssh://git@github.com/stone-payments/maluforce.git --user
 ```
 # Usage
 ```

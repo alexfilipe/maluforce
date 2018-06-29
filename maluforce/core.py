@@ -82,7 +82,10 @@ class Maluforce(Salesforce):
                 except (IndexError, SalesforceMalformedRequest) as e:
                     print("{}: {} invalid request: {}".format("query_salesforce", api, e))
             if len(resp) > 0:
-                lod_resp = decodeSFresponse(resp)
+                if type(resp) is list:
+                    lod_resp = decodeSFresponse(resp)
+                elif 'records' in resp :
+                    lod_resp = decodeSFresponse(resp['records'])
         return lod_resp
 
 

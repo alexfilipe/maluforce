@@ -1,5 +1,6 @@
 import copy
 import pandas as pd
+from collections import OrderedDict
 
 def adjust_report(report,utf_encoded=False):
     """ 
@@ -86,7 +87,7 @@ def decodeSFresponse(resp):
 def decodeSFObject(root):
     dict_node = {}
     for node in list(set(root.keys()) - {"attributes"}):
-        if type(root[node]) is dict:
+        if type(root[node]) in [OrderedDict,dict]:
             tmp = {}
             tmp = decodeSFObject(root[node])
             for sub in tmp:

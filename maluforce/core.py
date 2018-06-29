@@ -85,7 +85,7 @@ class Maluforce(Salesforce):
                 if len(resp) > 0:
                     lod_resp = decodeSFresponse(resp)
             elif 'records' in resp :
-                    lod_resp = decodeSFresponse(resp['records'])
+                lod_resp = decodeSFresponse(resp['records'])
         return lod_resp
 
 

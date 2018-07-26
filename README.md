@@ -18,6 +18,10 @@ For ubuntu:
 ```
 python3 -m pip install git+ssh://git@github.com/stone-payments/maluforce.git --user
 ```
+For a project:
+- clone the git repo
+- delete .git and .gitgnore files
+- install with `pipenv install -e maluforce`
 # Usage
 ```
 from maluforce import Maluforce

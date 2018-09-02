@@ -73,13 +73,13 @@ Parses a `pandas.DataFrame` to a `lod`. You can specify which columns from the d
 ```
 df_permissionset
 ```
-AssigneeId | AssigneeName |	Id | PermissionSetId |
+|AssigneeId | AssigneeName |	Id | PermissionSetId |
 |---|---|---|---|
-00541000004OVfCAAW | Leonardo |	0Pa1L000007L0flSAC | 0PS410000026AhIGAU |	
-00541000004Om8jAAC | Oliveira |	0Pa1L000007L0fmSAC | 0PS410000026AhIGAU |	
-005410000035wnXAAQ | Paulo | 0Pa1L000007L0fnSAC	| 0PS410000026AhIGAU |	
-00541000004OvYEAA0 | Lucas | 0Pa1L000007L0foSAC	| 0PS410000026AhIGAU |	
-005410000065T1AAAU | Brizolla |	0Pa1L000007L0fpSAC | 0PS410000026AhIGAU |	
+|00541000004OVfCAAW | Leonardo |	0Pa1L000007L0flSAC | 0PS410000026AhIGAU |	
+|00541000004Om8jAAC | Oliveira |	0Pa1L000007L0fmSAC | 0PS410000026AhIGAU |	
+|005410000035wnXAAQ | Paulo | 0Pa1L000007L0fnSAC	| 0PS410000026AhIGAU |	
+|00541000004OvYEAA0 | Lucas | 0Pa1L000007L0foSAC	| 0PS410000026AhIGAU |	
+|005410000065T1AAAU | Brizolla |	0Pa1L000007L0fpSAC | 0PS410000026AhIGAU |	
 ```
 to_lod(df_permissionset,key_map={"AssigneeId","UserId"},drop=True)
 ```

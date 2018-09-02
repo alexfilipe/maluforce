@@ -55,7 +55,8 @@ df_users = pd.DataFrame(lod_users)
 ## DML
 
 ### insert
-- don't pass and `Id` or you will get an error
+- don't pass and `Id` or you will get an error.
+
 ```
 lod_users = [{'LastName': 'Poto','Email': 'ctrcctrlv@gmail.com'},{'LastName': 'Poto2','Email': '2ctrcctrlv@gmail.com'}]
 
@@ -73,6 +74,7 @@ Parses a `pandas.DataFrame` to a `lod`. You can specify which columns from the d
 ```
 df_permissionset
 ```
+
 |AssigneeId | AssigneeName |	Id | PermissionSetId |
 |---|---|---|---|
 |00541000004OVfCAAW | Leonardo |	0Pa1L000007L0flSAC | 0PS410000026AhIGAU |	
@@ -80,10 +82,13 @@ df_permissionset
 |005410000035wnXAAQ | Paulo | 0Pa1L000007L0fnSAC	| 0PS410000026AhIGAU |	
 |00541000004OvYEAA0 | Lucas | 0Pa1L000007L0foSAC	| 0PS410000026AhIGAU |	
 |005410000065T1AAAU | Brizolla |	0Pa1L000007L0fpSAC | 0PS410000026AhIGAU |	
+
 ```
 to_lod(df_permissionset,key_map={"AssigneeId","UserId"},drop=True)
 ```
+
 results:
+
 ```
 [{'UserId': '00541000004OVfCAAW'},
  {'UserId': '00541000004Om8jAAC'},
